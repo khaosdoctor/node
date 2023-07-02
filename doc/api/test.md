@@ -1925,7 +1925,7 @@ clocks or actual timers outside of the mocking environment.
 
 ### `timers.setTime(milliseconds)`
 
-Sets the current UNIX timestamp that will be used as reference for `Date.now`.
+Sets the current Unix timestamp that will be used as reference for `Date.now`.
 
 ```mjs
 import assert from 'node:assert';
@@ -1944,7 +1944,7 @@ test('runAll functions following the given order', (context) => {
 });
 ```
 
-```mjs
+```js
 const assert = require('node:assert');
 const { test } = require('node:test');
 
@@ -1960,7 +1960,6 @@ test('setTime replaces current time', (context) => {
   assert.strictEqual(Date.now(), setTime);
 });
 ```
-
 
 ## Class: `TestsStream`
 
