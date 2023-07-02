@@ -1550,6 +1550,7 @@ mock.timers.enable(['setInterval']);
 ```
 
 Example usage with initial time set
+
 ```mjs
 import { mock } from 'node:test';
 mock.timers.enable(['Date.now'], 1000);
