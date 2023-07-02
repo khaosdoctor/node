@@ -1925,6 +1925,11 @@ clocks or actual timers outside of the mocking environment.
 
 ### `timers.setTime(milliseconds)`
 
+<!-- YAML
+added:
+  - REPLACEME
+-->
+
 Sets the current Unix timestamp that will be used as reference for `Date.now`.
 
 ```mjs
