@@ -1524,12 +1524,16 @@ added:
 Enables timer mocking for the specified timers.
 
 * `timers` {Array} An optional array containing the timers to mock.
-  The currently supported timer values are `'setInterval'` and `'setTimeout'`.
-  If no array is provided, all timers (`'setInterval'`, `'clearInterval'`, `'setTimeout'`,
-  and `'clearTimeout'`) will be mocked by default.
+  The currently supported timer values are `'setInterval'`, `'setTimeout'`,
+  and `'Date.now'`.
+  If no array is provided, all timers (`'setInterval'`, `'clearInterval'`,
+  `'setTimeout'`, `'clearTimeout'`, and `'Date.now'`) will be mocked by default.
 
 **Note:** When you enable mocking for a specific timer, its associated
 clear function will also be implicitly mocked.
+
+**Note:** Mocking `Date.now` will affect the behavior of the mocked timers
+as they use this value internally.
 
 Example usage:
 
@@ -1918,6 +1922,45 @@ test('runAll functions following the given order', (context) => {
 triggering timers in the context of timer mocking.
 It does not have any effect on real-time system
 clocks or actual timers outside of the mocking environment.
+
+### `timers.setTime(milliseconds)`
+
+Sets the current UNIX timestamp that will be used as reference for `Date.now`.
+
+```mjs
+import assert from 'node:assert';
+import { test } from 'node:test';
+
+test('runAll functions following the given order', (context) => {
+  const now = Date.now();
+  const setTime = 1000;
+  // Date.now is not mocked
+  assert.deepStrictEqual(Date.now(), now);
+
+  context.mock.timers.enable(['Date.now']);
+  context.mock.timers.setTime(setTime);
+  // Date.now is now 1000
+  assert.strictEqual(Date.now(), setTime);
+});
+```
+
+```mjs
+const assert = require('node:assert');
+const { test } = require('node:test');
+
+test('setTime replaces current time', (context) => {
+  const now = Date.now();
+  const setTime = 1000;
+  // Date.now is not mocked
+  assert.deepStrictEqual(Date.now(), now);
+
+  context.mock.timers.enable(['Date.now']);
+  context.mock.timers.setTime(setTime);
+  // Date.now is now 1000
+  assert.strictEqual(Date.now(), setTime);
+});
+```
+
 
 ## Class: `TestsStream`
 
