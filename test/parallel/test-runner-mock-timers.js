@@ -10,20 +10,26 @@ const nodeTimersPromises = require('node:timers/promises');
 describe('Mock Timers Test Suite', () => {
   describe('MockTimers API', () => {
     it('should throw an error if trying to enable a timer that is not supported', (t) => {
-      assert.throws(() => {
-        t.mock.timers.enable(['DOES_NOT_EXIST']);
-      }, {
-        code: 'ERR_INVALID_ARG_VALUE',
-      });
+      assert.throws(
+        () => {
+          t.mock.timers.enable(['DOES_NOT_EXIST']);
+        },
+        {
+          code: 'ERR_INVALID_ARG_VALUE',
+        }
+      );
     });
 
     it('should throw an error if trying to enable a timer twice', (t) => {
       t.mock.timers.enable();
-      assert.throws(() => {
-        t.mock.timers.enable();
-      }, {
-        code: 'ERR_INVALID_STATE',
-      });
+      assert.throws(
+        () => {
+          t.mock.timers.enable();
+        },
+        {
+          code: 'ERR_INVALID_STATE',
+        }
+      );
     });
 
     it('should not throw if calling reset without enabling timers', (t) => {
@@ -31,20 +37,26 @@ describe('Mock Timers Test Suite', () => {
     });
 
     it('should throw an error if calling tick without enabling timers', (t) => {
-      assert.throws(() => {
-        t.mock.timers.tick();
-      }, {
-        code: 'ERR_INVALID_STATE',
-      });
+      assert.throws(
+        () => {
+          t.mock.timers.tick();
+        },
+        {
+          code: 'ERR_INVALID_STATE',
+        }
+      );
     });
 
     it('should throw an error if calling tick with a negative number', (t) => {
       t.mock.timers.enable();
-      assert.throws(() => {
-        t.mock.timers.tick(-1);
-      }, {
-        code: 'ERR_INVALID_ARG_VALUE',
-      });
+      assert.throws(
+        () => {
+          t.mock.timers.tick(-1);
+        },
+        {
+          code: 'ERR_INVALID_ARG_VALUE',
+        }
+      );
     });
 
     it('should reset all timers when calling .reset function', (t) => {
@@ -52,11 +64,15 @@ describe('Mock Timers Test Suite', () => {
       const fn = t.mock.fn();
       global.setTimeout(fn, 1000);
       t.mock.timers.reset();
-      assert.throws(() => {
-        t.mock.timers.tick(1000);
-      }, {
-        code: 'ERR_INVALID_STATE',
-      });
+      assert.deepStrictEqual(Date.now, globalThis.Date.now);
+      assert.throws(
+        () => {
+          t.mock.timers.tick(1000);
+        },
+        {
+          code: 'ERR_INVALID_STATE',
+        }
+      );
 
       assert.strictEqual(fn.mock.callCount(), 0);
     });
@@ -67,11 +83,14 @@ describe('Mock Timers Test Suite', () => {
       global.setTimeout(fn, 1000);
       // TODO(benjamingr) refactor to `using`
       t.mock.timers[Symbol.dispose]();
-      assert.throws(() => {
-        t.mock.timers.tick(1000);
-      }, {
-        code: 'ERR_INVALID_STATE',
-      });
+      assert.throws(
+        () => {
+          t.mock.timers.tick(1000);
+        },
+        {
+          code: 'ERR_INVALID_STATE',
+        }
+      );
 
       assert.strictEqual(fn.mock.callCount(), 0);
     });
@@ -91,11 +110,14 @@ describe('Mock Timers Test Suite', () => {
 
     describe('runAll Suite', () => {
       it('should throw an error if calling runAll without enabling timers', (t) => {
-        assert.throws(() => {
-          t.mock.timers.runAll();
-        }, {
-          code: 'ERR_INVALID_STATE',
-        });
+        assert.throws(
+          () => {
+            t.mock.timers.runAll();
+          },
+          {
+            code: 'ERR_INVALID_STATE',
+          }
+        );
       });
 
       it('should trigger all timers when calling .runAll function', async (t) => {
@@ -112,7 +134,6 @@ describe('Mock Timers Test Suite', () => {
         assert.strictEqual(intervalFn.mock.callCount(), 1);
       });
     });
-
   });
 
   describe('globals/timers', () => {
@@ -161,12 +182,14 @@ describe('Mock Timers Test Suite', () => {
         const now = Date.now();
         const timeout = 2;
         const expected = () => now - timeout;
-        global.setTimeout(common.mustCall(() => {
-          assert.strictEqual(now - timeout, expected());
-          done();
-        }), timeout);
+        global.setTimeout(
+          common.mustCall(() => {
+            assert.strictEqual(now - timeout, expected());
+            done();
+          }),
+          timeout
+        );
       });
-
     });
 
     describe('clearTimeout Suite', () => {
@@ -215,7 +238,6 @@ describe('Mock Timers Test Suite', () => {
         assert.deepStrictEqual(fn.mock.calls[0].arguments, args);
         assert.deepStrictEqual(fn.mock.calls[1].arguments, args);
         assert.deepStrictEqual(fn.mock.calls[2].arguments, args);
-
       });
     });
 
@@ -231,7 +253,6 @@ describe('Mock Timers Test Suite', () => {
         assert.strictEqual(fn.mock.callCount(), 0);
       });
     });
-
   });
 
   describe('timers Suite', () => {
@@ -314,7 +335,6 @@ describe('Mock Timers Test Suite', () => {
         assert.deepStrictEqual(fn.mock.calls[1].arguments, args);
         assert.deepStrictEqual(fn.mock.calls[2].arguments, args);
         assert.deepStrictEqual(fn.mock.calls[3].arguments, args);
-
       });
     });
 
@@ -329,6 +349,49 @@ describe('Mock Timers Test Suite', () => {
         t.mock.timers.tick(200);
 
         assert.strictEqual(fn.mock.callCount(), 0);
+      });
+    });
+
+    describe.only('Date.now Suite', () => {
+      it('should return roughly the same value as the original Date.now if not set for a specific time', (t) => {
+        const originalNow = Date.now();
+        t.mock.timers.enable(['Date.now']);
+        const now = Date.now();
+        assert(now <= originalNow);
+      });
+
+      it('should throw an error when setting a negative time', (t) => {
+        t.mock.timers.enable(['Date.now']);
+        assert.throws(
+          () => {
+            t.mock.timers.setTime(-1);
+          },
+          { code: 'ERR_INVALID_ARG_VALUE' }
+        );
+      });
+
+      it('should throw an error if setTime is called without enabling timers', (t) => {
+        assert.throws(
+          () => {
+            t.mock.timers.setTime(100);
+          },
+          { code: 'ERR_INVALID_STATE' }
+        );
+      });
+
+      it('should replace the original Date.now with the mocked one', (t) => {
+        t.mock.timers.enable(['Date.now']);
+        t.mock.timers.setTime(100);
+        const now = Date.now();
+        assert.deepStrictEqual(now, 100);
+      });
+
+      it('should return the ticked time when calling Date.now after tick', (t) => {
+        t.mock.timers.enable(['Date.now']);
+        t.mock.timers.setTime(100);
+        t.mock.timers.tick(100);
+        const now = Date.now();
+        assert.deepStrictEqual(now, 200);
       });
     });
   });
