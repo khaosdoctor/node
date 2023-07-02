@@ -1514,7 +1514,7 @@ without actually waiting for the specified time intervals.
 The [`MockTracker`][] provides a top-level `timers` export
 which is a `MockTimers` instance.
 
-### `timers.enable([timers])`
+### `timers.enable([timers][, initialTime])`
 
 <!-- YAML
 added:
@@ -1528,6 +1528,8 @@ Enables timer mocking for the specified timers.
   and `'Date.now'`.
   If no array is provided, all timers (`'setInterval'`, `'clearInterval'`,
   `'setTimeout'`, `'clearTimeout'`, and `'Date.now'`) will be mocked by default.
+* `initialTime` {number} An optional number representing the initial time
+  (in milliseconds) to use as the value for `Date.now()`. **Default:** `Date.now()`.
 
 **Note:** When you enable mocking for a specific timer, its associated
 clear function will also be implicitly mocked.
@@ -1535,7 +1537,7 @@ clear function will also be implicitly mocked.
 **Note:** Mocking `Date.now` will affect the behavior of the mocked timers
 as they use this value internally.
 
-Example usage:
+Example usage without setting initial time:
 
 ```mjs
 import { mock } from 'node:test';
@@ -1545,6 +1547,17 @@ mock.timers.enable(['setInterval']);
 ```js
 const { mock } = require('node:test');
 mock.timers.enable(['setInterval']);
+```
+
+Example usage with initial time set
+```mjs
+import { mock } from 'node:test';
+mock.timers.enable(['Date.now'], 1000);
+```
+
+```js
+const { mock } = require('node:test');
+mock.timers.enable(['Date.now'], 1000);
 ```
 
 The above example enables mocking for the `setInterval` timer and
