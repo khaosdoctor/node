@@ -382,8 +382,11 @@ describe('Mock Timers Test Suite', () => {
       it('should replace the original Date.now with the mocked one', (t) => {
         t.mock.timers.enable(['Date.now']);
         t.mock.timers.setTime(100);
-        const now = Date.now();
-        assert.deepStrictEqual(now, 100);
+        assert.strictEqual(Date.now(), 100);
+        t.mock.timers.reset();
+
+        t.mock.timers.enable(['Date.now'], 100);
+        assert.strictEqual(Date.now(), 100);
       });
 
       it('should return the ticked time when calling Date.now after tick', (t) => {
@@ -391,7 +394,7 @@ describe('Mock Timers Test Suite', () => {
         t.mock.timers.setTime(100);
         t.mock.timers.tick(100);
         const now = Date.now();
-        assert.deepStrictEqual(now, 200);
+        assert.strictEqual(now, 200);
       });
     });
   });
