@@ -352,7 +352,7 @@ describe('Mock Timers Test Suite', () => {
       });
     });
 
-    describe.only('Date.now Suite', () => {
+    describe('Date.now Suite', () => {
       it('should return roughly the same value as the original Date.now if not set for a specific time', (t) => {
         const originalNow = Date.now();
         t.mock.timers.enable(['Date.now']);
