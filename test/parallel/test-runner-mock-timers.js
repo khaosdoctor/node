@@ -351,52 +351,6 @@ describe('Mock Timers Test Suite', () => {
         assert.strictEqual(fn.mock.callCount(), 0);
       });
     });
-
-    describe('Date.now Suite', () => {
-      it('should return roughly the same value as the original Date.now if not set for a specific time', (t) => {
-        const originalNow = Date.now();
-        t.mock.timers.enable(['Date.now']);
-        const now = Date.now();
-        assert(now <= originalNow);
-      });
-
-      it('should throw an error when setting a negative time', (t) => {
-        t.mock.timers.enable(['Date.now']);
-        assert.throws(
-          () => {
-            t.mock.timers.setTime(-1);
-          },
-          { code: 'ERR_INVALID_ARG_VALUE' }
-        );
-      });
-
-      it('should throw an error if setTime is called without enabling timers', (t) => {
-        assert.throws(
-          () => {
-            t.mock.timers.setTime(100);
-          },
-          { code: 'ERR_INVALID_STATE' }
-        );
-      });
-
-      it('should replace the original Date.now with the mocked one', (t) => {
-        t.mock.timers.enable(['Date.now']);
-        t.mock.timers.setTime(100);
-        assert.strictEqual(Date.now(), 100);
-        t.mock.timers.reset();
-
-        t.mock.timers.enable(['Date.now'], 100);
-        assert.strictEqual(Date.now(), 100);
-      });
-
-      it('should return the ticked time when calling Date.now after tick', (t) => {
-        t.mock.timers.enable(['Date.now']);
-        t.mock.timers.setTime(100);
-        t.mock.timers.tick(100);
-        const now = Date.now();
-        assert.strictEqual(now, 200);
-      });
-    });
   });
 
   describe('timers/promises', () => {
@@ -411,9 +365,11 @@ describe('Mock Timers Test Suite', () => {
         t.mock.timers.tick(500);
         t.mock.timers.tick(500);
 
-        p.then(common.mustCall((result) => {
-          assert.ok(result);
-        }));
+        p.then(
+          common.mustCall((result) => {
+            assert.ok(result);
+          })
+        );
       });
 
       it('should work with the same params as the original timers/promises/setTimeout', async (t) => {
@@ -422,7 +378,7 @@ describe('Mock Timers Test Suite', () => {
         const controller = new AbortController();
         const p = nodeTimersPromises.setTimeout(2000, expectedResult, {
           ref: true,
-          signal: controller.signal
+          signal: controller.signal,
         });
 
         t.mock.timers.tick(1000);
@@ -440,7 +396,7 @@ describe('Mock Timers Test Suite', () => {
         const controller = new AbortController();
         const p = nodeTimersPromises.setTimeout(2000, expectedResult, {
           ref: true,
-          signal: controller.signal
+          signal: controller.signal,
         });
 
         t.mock.timers.tick(1000);
@@ -451,15 +407,14 @@ describe('Mock Timers Test Suite', () => {
         await assert.rejects(() => p, {
           name: 'AbortError',
         });
-
       });
-      it('should abort operation even if the .tick wasn\'t called', async (t) => {
+      it("should abort operation even if the .tick wasn't called", async (t) => {
         t.mock.timers.enable(['setTimeout']);
         const expectedResult = 'result';
         const controller = new AbortController();
         const p = nodeTimersPromises.setTimeout(2000, expectedResult, {
           ref: true,
-          signal: controller.signal
+          signal: controller.signal,
         });
 
         controller.abort();
@@ -467,7 +422,6 @@ describe('Mock Timers Test Suite', () => {
         await assert.rejects(() => p, {
           name: 'AbortError',
         });
-
       });
 
       it('should abort operation when .abort is called before calling setInterval', async (t) => {
@@ -477,13 +431,12 @@ describe('Mock Timers Test Suite', () => {
         controller.abort();
         const p = nodeTimersPromises.setTimeout(2000, expectedResult, {
           ref: true,
-          signal: controller.signal
+          signal: controller.signal,
         });
 
         await assert.rejects(() => p, {
           name: 'AbortError',
         });
-
       });
 
       it('should reject given an an invalid signal instance', async (t) => {
@@ -491,14 +444,13 @@ describe('Mock Timers Test Suite', () => {
         const expectedResult = 'result';
         const p = nodeTimersPromises.setTimeout(2000, expectedResult, {
           ref: true,
-          signal: {}
+          signal: {},
         });
 
         await assert.rejects(() => p, {
           name: 'TypeError',
-          code: 'ERR_INVALID_ARG_TYPE'
+          code: 'ERR_INVALID_ARG_TYPE',
         });
-
       });
     });
 
@@ -507,7 +459,10 @@ describe('Mock Timers Test Suite', () => {
         t.mock.timers.enable(['setInterval']);
 
         const interval = 100;
-        const intervalIterator = nodeTimersPromises.setInterval(interval, Date.now());
+        const intervalIterator = nodeTimersPromises.setInterval(
+          interval,
+          Date.now()
+        );
 
         const first = intervalIterator.next();
         const second = intervalIterator.next();
@@ -518,11 +473,7 @@ describe('Mock Timers Test Suite', () => {
         t.mock.timers.tick(interval);
         t.mock.timers.tick(interval);
 
-        const results = await Promise.all([
-          first,
-          second,
-          third,
-        ]);
+        const results = await Promise.all([first, second, third]);
 
         const finished = await intervalIterator.return();
         assert.deepStrictEqual(finished, { done: true, value: undefined });
@@ -531,10 +482,8 @@ describe('Mock Timers Test Suite', () => {
           assert.strictEqual(typeof result.value, 'number');
           assert.strictEqual(result.done, false);
         });
-
       });
       it('should tick five times testing a real use case', async (t) => {
-
         t.mock.timers.enable(['setInterval']);
 
         const expectedIterations = 5;
@@ -542,10 +491,12 @@ describe('Mock Timers Test Suite', () => {
         const startedAt = Date.now();
         async function run() {
           const times = [];
-          for await (const time of nodeTimersPromises.setInterval(interval, startedAt)) {
+          for await (const time of nodeTimersPromises.setInterval(
+            interval,
+            startedAt
+          )) {
             times.push(time);
             if (times.length === expectedIterations) break;
-
           }
           return times;
         }
@@ -560,7 +511,7 @@ describe('Mock Timers Test Suite', () => {
         const timeResults = await r;
         assert.strictEqual(timeResults.length, expectedIterations);
         for (let it = 1; it < expectedIterations; it++) {
-          assert.strictEqual(timeResults[it - 1], startedAt + (interval * it));
+          assert.strictEqual(timeResults[it - 1], startedAt + interval * it);
         }
       });
 
@@ -569,9 +520,13 @@ describe('Mock Timers Test Suite', () => {
 
         const interval = 100;
         const abortController = new AbortController();
-        const intervalIterator = nodeTimersPromises.setInterval(interval, Date.now(), {
-          signal: abortController.signal
-        });
+        const intervalIterator = nodeTimersPromises.setInterval(
+          interval,
+          Date.now(),
+          {
+            signal: abortController.signal,
+          }
+        );
 
         const first = intervalIterator.next();
         const second = intervalIterator.next();
@@ -588,7 +543,6 @@ describe('Mock Timers Test Suite', () => {
         await assert.rejects(() => second, {
           name: 'AbortError',
         });
-
       });
 
       it('should abort operation when .abort is called before calling setInterval', async (t) => {
@@ -597,9 +551,13 @@ describe('Mock Timers Test Suite', () => {
         const interval = 100;
         const abortController = new AbortController();
         abortController.abort();
-        const intervalIterator = nodeTimersPromises.setInterval(interval, Date.now(), {
-          signal: abortController.signal
-        });
+        const intervalIterator = nodeTimersPromises.setInterval(
+          interval,
+          Date.now(),
+          {
+            signal: abortController.signal,
+          }
+        );
 
         const first = intervalIterator.next();
         t.mock.timers.tick(interval);
@@ -618,7 +576,9 @@ describe('Mock Timers Test Suite', () => {
         const startedAt = Date.now();
         const timeResults = [];
         async function run() {
-          const it = nodeTimersPromises.setInterval(interval, startedAt, { signal });
+          const it = nodeTimersPromises.setInterval(interval, startedAt, {
+            signal,
+          });
           for await (const time of it) {
             timeResults.push(time);
             if (timeResults.length === 5) break;
@@ -640,12 +600,51 @@ describe('Mock Timers Test Suite', () => {
         assert.strictEqual(timeResults.length, expectedIterations);
 
         for (let it = 1; it < expectedIterations; it++) {
-          assert.strictEqual(timeResults[it - 1], startedAt + (interval * it));
+          assert.strictEqual(timeResults[it - 1], startedAt + interval * it);
         }
-
       });
+    });
+  });
 
+  describe('Date Suite', () => {
+    it('should return the initial UNIX epoch if not specified', (t) => {
+      t.mock.timers.enable(['Date']);
+      const now = Date.now();
+      assert.strictEqual(now, 0);
     });
 
+    it('should throw an error when setting a negative time', (t) => {
+      t.mock.timers.enable(['Date']);
+      assert.throws(
+        () => {
+          t.mock.timers.setTime(-1);
+        },
+        { code: 'ERR_INVALID_ARG_VALUE' }
+      );
+    });
+
+    it('should throw an error if setTime is called without enabling timers', (t) => {
+      assert.throws(
+        () => {
+          t.mock.timers.setTime(100);
+        },
+        { code: 'ERR_INVALID_STATE' }
+      );
+    });
+
+    it('should replace the original Date with the mocked one', (t) => {
+      t.mock.timers.enable(['Date']);
+      t.mock.timers.setTime(100);
+      assert.strictEqual(Date.now(), 100);
+      t.mock.timers.reset();
+    });
+
+    it('should return the ticked time when calling Date.now after tick', (t) => {
+      t.mock.timers.enable(['Date']);
+      t.mock.timers.setTime(100);
+      t.mock.timers.tick(100);
+      const now = Date.now();
+      assert.strictEqual(now, 200);
+    });
   });
 });
