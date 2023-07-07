@@ -10,8 +10,7 @@ const nodeTimersPromises = require('node:timers/promises');
 describe('Mock Timers Test Suite', () => {
   describe('MockTimers API', () => {
     it('should throw an error if trying to enable a timer that is not supported', (t) => {
-      assert.throws(
-        () => {
+      assert.throws(() => {
           t.mock.timers.enable({ timersToEnable: ['DOES_NOT_EXIST'] });
         },
         {
@@ -22,8 +21,7 @@ describe('Mock Timers Test Suite', () => {
 
     it('should throw an error if trying to enable a timer twice', (t) => {
       t.mock.timers.enable();
-      assert.throws(
-        () => {
+      assert.throws(() => {
           t.mock.timers.enable();
         },
         {
@@ -37,8 +35,7 @@ describe('Mock Timers Test Suite', () => {
     });
 
     it('should throw an error if calling tick without enabling timers', (t) => {
-      assert.throws(
-        () => {
+      assert.throws(() => {
           t.mock.timers.tick();
         },
         {
@@ -49,8 +46,7 @@ describe('Mock Timers Test Suite', () => {
 
     it('should throw an error if calling tick with a negative number', (t) => {
       t.mock.timers.enable();
-      assert.throws(
-        () => {
+      assert.throws(() => {
           t.mock.timers.tick(-1);
         },
         {
@@ -65,8 +61,7 @@ describe('Mock Timers Test Suite', () => {
       global.setTimeout(fn, 1000);
       t.mock.timers.reset();
       assert.deepStrictEqual(Date.now, globalThis.Date.now);
-      assert.throws(
-        () => {
+      assert.throws(() => {
           t.mock.timers.tick(1000);
         },
         {
@@ -83,8 +78,7 @@ describe('Mock Timers Test Suite', () => {
       global.setTimeout(fn, 1000);
       // TODO(benjamingr) refactor to `using`
       t.mock.timers[Symbol.dispose]();
-      assert.throws(
-        () => {
+      assert.throws(() => {
           t.mock.timers.tick(1000);
         },
         {
@@ -110,8 +104,7 @@ describe('Mock Timers Test Suite', () => {
 
     describe('runAll Suite', () => {
       it('should throw an error if calling runAll without enabling timers', (t) => {
-        assert.throws(
-          () => {
+        assert.throws(() => {
             t.mock.timers.runAll();
           },
           {
@@ -182,13 +175,10 @@ describe('Mock Timers Test Suite', () => {
         const now = Date.now();
         const timeout = 2;
         const expected = () => now - timeout;
-        global.setTimeout(
-          common.mustCall(() => {
-            assert.strictEqual(now - timeout, expected());
-            done();
-          }),
-          timeout
-        );
+        global.setTimeout(common.mustCall(() => {
+          assert.strictEqual(now - timeout, expected());
+          done();
+        }), timeout);
       });
     });
 
@@ -365,11 +355,9 @@ describe('Mock Timers Test Suite', () => {
         t.mock.timers.tick(500);
         t.mock.timers.tick(500);
 
-        p.then(
-          common.mustCall((result) => {
-            assert.ok(result);
-          })
-        );
+        p.then(common.mustCall((result) => {
+          assert.ok(result);
+        }));
       });
 
       it('should work with the same params as the original timers/promises/setTimeout', async (t) => {
