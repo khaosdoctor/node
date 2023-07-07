@@ -447,7 +447,7 @@ describe('Mock Timers Test Suite', () => {
         const results = await Promise.all([
           first,
           second,
-          third
+          third,
         ]);
 
         const finished = await intervalIterator.return();
@@ -465,7 +465,7 @@ describe('Mock Timers Test Suite', () => {
         const startedAt = Date.now();
         async function run() {
           const times = [];
-          for await (const time of nodeTimersPromises.setInterval(interval,startedAt)) {
+          for await (const time of nodeTimersPromises.setInterval(interval, startedAt)) {
             times.push(time);
             if (times.length === expectedIterations) break;
           }
