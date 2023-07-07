@@ -382,7 +382,7 @@ describe('Mock Timers Test Suite', () => {
           name: 'AbortError',
         });
       });
-      it("should abort operation even if the .tick wasn't called", async (t) => {
+      it('should abort operation even if the .tick was not called', async (t) => {
         t.mock.timers.enable({ timersToEnable: ['setTimeout'] });
         const expectedResult = 'result';
         const controller = new AbortController();
@@ -433,10 +433,7 @@ describe('Mock Timers Test Suite', () => {
         t.mock.timers.enable({ timersToEnable: ['setInterval'] });
 
         const interval = 100;
-        const intervalIterator = nodeTimersPromises.setInterval(
-          interval,
-          Date.now()
-        );
+        const intervalIterator = nodeTimersPromises.setInterval(interval, Date.now());
 
         const first = intervalIterator.next();
         const second = intervalIterator.next();
@@ -447,11 +444,14 @@ describe('Mock Timers Test Suite', () => {
         t.mock.timers.tick(interval);
         t.mock.timers.tick(interval);
 
-        const results = await Promise.all([first, second, third]);
+        const results = await Promise.all([
+          first,
+          second,
+          third
+        ]);
 
         const finished = await intervalIterator.return();
         assert.deepStrictEqual(finished, { done: true, value: undefined });
-
         results.forEach((result) => {
           assert.strictEqual(typeof result.value, 'number');
           assert.strictEqual(result.done, false);
@@ -465,10 +465,7 @@ describe('Mock Timers Test Suite', () => {
         const startedAt = Date.now();
         async function run() {
           const times = [];
-          for await (const time of nodeTimersPromises.setInterval(
-            interval,
-            startedAt
-          )) {
+          for await (const time of nodeTimersPromises.setInterval(interval,startedAt)) {
             times.push(time);
             if (times.length === expectedIterations) break;
           }
@@ -494,13 +491,9 @@ describe('Mock Timers Test Suite', () => {
 
         const interval = 100;
         const abortController = new AbortController();
-        const intervalIterator = nodeTimersPromises.setInterval(
-          interval,
-          Date.now(),
-          {
-            signal: abortController.signal,
-          }
-        );
+        const intervalIterator = nodeTimersPromises.setInterval(interval, Date.now(), {
+          signal: abortController.signal,
+        });
 
         const first = intervalIterator.next();
         const second = intervalIterator.next();
@@ -525,13 +518,9 @@ describe('Mock Timers Test Suite', () => {
         const interval = 100;
         const abortController = new AbortController();
         abortController.abort();
-        const intervalIterator = nodeTimersPromises.setInterval(
-          interval,
-          Date.now(),
-          {
-            signal: abortController.signal,
-          }
-        );
+        const intervalIterator = nodeTimersPromises.setInterval(interval, Date.now(), {
+          signal: abortController.signal,
+        });
 
         const first = intervalIterator.next();
         t.mock.timers.tick(interval);
@@ -550,9 +539,7 @@ describe('Mock Timers Test Suite', () => {
         const startedAt = Date.now();
         const timeResults = [];
         async function run() {
-          const it = nodeTimersPromises.setInterval(interval, startedAt, {
-            signal,
-          });
+          const it = nodeTimersPromises.setInterval(interval, startedAt, { signal });
           for await (const time of it) {
             timeResults.push(time);
             if (timeResults.length === 5) break;
@@ -574,7 +561,7 @@ describe('Mock Timers Test Suite', () => {
         assert.strictEqual(timeResults.length, expectedIterations);
 
         for (let it = 1; it < expectedIterations; it++) {
-          assert.strictEqual(timeResults[it - 1], startedAt + interval * it);
+          assert.strictEqual(timeResults[it - 1], startedAt + (interval * it));
         }
       });
     });
