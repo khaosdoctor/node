@@ -12,7 +12,7 @@ describe('Mock Timers Test Suite', () => {
     it('should throw an error if trying to enable a timer that is not supported', (t) => {
       assert.throws(
         () => {
-          t.mock.timers.enable({timersToEnable: ['DOES_NOT_EXIST']});
+          t.mock.timers.enable({ timersToEnable: ['DOES_NOT_EXIST'] });
         },
         {
           code: 'ERR_INVALID_ARG_VALUE',
@@ -139,7 +139,7 @@ describe('Mock Timers Test Suite', () => {
   describe('globals/timers', () => {
     describe('setTimeout Suite', () => {
       it('should advance in time and trigger timers when calling the .tick function', (t) => {
-        mock.timers.enable({timersToEnable: ['setTimeout']});
+        mock.timers.enable({ timersToEnable: ['setTimeout'] });
 
         const fn = mock.fn();
 
