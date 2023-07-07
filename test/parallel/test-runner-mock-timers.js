@@ -12,8 +12,7 @@ describe('Mock Timers Test Suite', () => {
     it('should throw an error if trying to enable a timer that is not supported', (t) => {
       assert.throws(() => {
           t.mock.timers.enable({ timersToEnable: ['DOES_NOT_EXIST'] });
-        },
-        {
+        }, {
           code: 'ERR_INVALID_ARG_VALUE',
         }
       );
@@ -23,8 +22,7 @@ describe('Mock Timers Test Suite', () => {
       t.mock.timers.enable();
       assert.throws(() => {
           t.mock.timers.enable();
-        },
-        {
+        }, {
           code: 'ERR_INVALID_STATE',
         }
       );
@@ -37,8 +35,7 @@ describe('Mock Timers Test Suite', () => {
     it('should throw an error if calling tick without enabling timers', (t) => {
       assert.throws(() => {
           t.mock.timers.tick();
-        },
-        {
+        }, {
           code: 'ERR_INVALID_STATE',
         }
       );
@@ -48,8 +45,7 @@ describe('Mock Timers Test Suite', () => {
       t.mock.timers.enable();
       assert.throws(() => {
           t.mock.timers.tick(-1);
-        },
-        {
+        }, {
           code: 'ERR_INVALID_ARG_VALUE',
         }
       );
@@ -63,8 +59,7 @@ describe('Mock Timers Test Suite', () => {
       assert.deepStrictEqual(Date.now, globalThis.Date.now);
       assert.throws(() => {
           t.mock.timers.tick(1000);
-        },
-        {
+        }, {
           code: 'ERR_INVALID_STATE',
         }
       );
@@ -80,8 +75,7 @@ describe('Mock Timers Test Suite', () => {
       t.mock.timers[Symbol.dispose]();
       assert.throws(() => {
           t.mock.timers.tick(1000);
-        },
-        {
+        }, {
           code: 'ERR_INVALID_STATE',
         }
       );
@@ -106,8 +100,7 @@ describe('Mock Timers Test Suite', () => {
       it('should throw an error if calling runAll without enabling timers', (t) => {
         assert.throws(() => {
             t.mock.timers.runAll();
-          },
-          {
+          }, {
             code: 'ERR_INVALID_STATE',
           }
         );
