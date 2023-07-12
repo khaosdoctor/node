@@ -125,15 +125,14 @@ describe('Mock Timers Test Suite', () => {
         global.clearInterval(id);
         assert.strictEqual(timeoutFn.mock.callCount(), 1);
         assert.strictEqual(intervalFn.mock.callCount(), 1);
-        assert.strictEqual(Date.now(), 9999)
+        assert.strictEqual(Date.now(), 9999);
       });
 
       it('should not error if there are not timers to run', (t) => {
-        assert.doesNotThrow(() => {
-          t.mock.timers.enable();
-          t.mock.timers.runAll();
-        })
-      })
+        t.mock.timers.enable();
+        t.mock.timers.runAll();
+        // Should not throw
+      });
     });
   });
 
@@ -594,7 +593,7 @@ describe('Mock Timers Test Suite', () => {
       t.mock.timers.enable({ timersToEnable: ['Date'] });
       const date = new Date();
       assert.strictEqual(date.getTime(), 0);
-      assert.strictEqual(Date.now(), 0)
+      assert.strictEqual(Date.now(), 0);
     });
 
     it.todo('should throw an error when setting a negative time', (t) => {
@@ -604,7 +603,7 @@ describe('Mock Timers Test Suite', () => {
           t.mock.timers.setTime(-1);
         },
         { code: 'ERR_INVALID_ARG_VALUE' }
-      )
+      );
     });
 
     it('should throw an error if setTime is called without enabling timers', (t) => {
@@ -619,21 +618,21 @@ describe('Mock Timers Test Suite', () => {
     it('should throw an error if epoch passed to enable is not valid', (t) => {
       assert.throws(
         () => {
-          t.mock.timers.enable({now: -1});
+          t.mock.timers.enable({ now: -1 });
         },
         { code: 'ERR_INVALID_ARG_VALUE' }
       );
 
       assert.throws(
         () => {
-          t.mock.timers.enable({now: 'string'});
+          t.mock.timers.enable({ now: 'string' });
         },
         { code: 'ERR_INVALID_ARG_TYPE' }
       );
 
       assert.throws(
         () => {
-          t.mock.timers.enable({now: NaN});
+          t.mock.timers.enable({ now: NaN });
         },
         { code: 'ERR_INVALID_ARG_VALUE' }
       );
@@ -641,7 +640,7 @@ describe('Mock Timers Test Suite', () => {
 
     it('should replace the original Date with the mocked one', (t) => {
       t.mock.timers.enable({ timersToEnable: ['Date'] });
-      assert.ok(Date.isMock)
+      assert.ok(Date.isMock);
     });
 
     it('should return the ticked time when calling Date.now after tick', (t) => {
@@ -654,7 +653,7 @@ describe('Mock Timers Test Suite', () => {
     it('should return the Date as string when calling it as a function', (t) => {
       t.mock.timers.enable({ timersToEnable: ['Date'] });
       assert.ok(/Thu Jan 01 1970 \d{2}:\d{2}:\d{2} GMT\+\d{4} \(.*\)/.test(Date()));
-    })
+    });
 
     it('should return the date with different argument calls', (t) => {
       t.mock.timers.enable({ timersToEnable: ['Date'] });
@@ -669,34 +668,34 @@ describe('Mock Timers Test Suite', () => {
       assert.strictEqual(new Date(1970, 0, 1, 11, 10, 45).getSeconds(), 45);
       assert.strictEqual(new Date(1970, 0, 1, 11, 10, 45, 898).getMilliseconds(), 898);
       assert.strictEqual(new Date(1970, 0, 1, 11, 10, 45, 898).toDateString(), 'Thu Jan 01 1970');
-    })
+    });
 
     it('should return native code when calling Date.toString', (t) => {
       t.mock.timers.enable({ timersToEnable: ['Date'] });
       assert.strictEqual(Date.toString(), 'function Date() { [native code] }');
-    })
+    });
 
     it('should start with a custom epoch if the second argument is specified', (t) => {
       t.mock.timers.enable({ timersToEnable: ['Date'], now: 100 });
       const date1 = new Date();
       assert.strictEqual(date1.getTime(), 100);
 
-      t.mock.timers.reset()
+      t.mock.timers.reset();
       t.mock.timers.enable({ timersToEnable: ['Date'], now: new Date(200) });
       const date2 = new Date();
       assert.strictEqual(date2.getTime(), 200);
-    })
+    });
 
     it('should replace epoch if setTime is lesser than now and not tick', (t) => {
       t.mock.timers.enable();
-      const fn = t.mock.fn()
-      const id = setTimeout(fn, 1000)
-      t.mock.timers.setTime(800)
+      const fn = t.mock.fn();
+      const id = setTimeout(fn, 1000);
+      t.mock.timers.setTime(800);
       assert.strictEqual(Date.now(), 800);
       t.mock.timers.setTime(500);
       assert.strictEqual(Date.now(), 500);
-      assert.strictEqual(fn.mock.callCount(), 0)
-      clearTimeout(id)
-    })
+      assert.strictEqual(fn.mock.callCount(), 0);
+      clearTimeout(id);
+    });
   });
 });
