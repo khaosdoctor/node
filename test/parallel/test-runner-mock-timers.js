@@ -112,6 +112,21 @@ describe('Mock Timers Test Suite', () => {
         assert.strictEqual(timeoutFn.mock.callCount(), 1);
         assert.strictEqual(intervalFn.mock.callCount(), 1);
       });
+
+      it('should increase the epoch as the tick run for runAll', async (t) => {
+        const timeoutFn = t.mock.fn();
+        const intervalFn = t.mock.fn();
+
+        t.mock.timers.enable();
+        global.setTimeout(timeoutFn, 1111);
+        const id = global.setInterval(intervalFn, 9999);
+        t.mock.timers.runAll();
+
+        global.clearInterval(id);
+        assert.strictEqual(timeoutFn.mock.callCount(), 1);
+        assert.strictEqual(intervalFn.mock.callCount(), 1);
+        assert.strictEqual(Date.now(), 9999)
+      });
     });
   });
 
