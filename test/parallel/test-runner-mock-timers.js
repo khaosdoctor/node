@@ -596,7 +596,7 @@ describe('Mock Timers Test Suite', () => {
       assert.strictEqual(Date.now(), 0);
     });
 
-    it.todo('should throw an error when setting a negative time', (t) => {
+    it('should throw an error when setting a negative time', (t) => {
       assert.throws(
         () => {
           t.mock.timers.enable({ timersToEnable: ['Date'] });
