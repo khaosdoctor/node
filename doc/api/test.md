@@ -1731,10 +1731,12 @@ Mocking timers is a technique commonly used in software testing to simulate and
 control the behavior of timers, such as `setInterval` and `setTimeout`,
 without actually waiting for the specified time intervals.
 
+MockTimers is also able to mock the `Date` object.
+
 The [`MockTracker`][] provides a top-level `timers` export
 which is a `MockTimers` instance.
 
-### `timers.enable([timers][, initialTime])`
+### `timers.enable([EnableOptions])`
 
 <!-- YAML
 added:
@@ -1743,42 +1745,33 @@ added:
 
 Enables timer mocking for the specified timers.
 
-* `timers` {Array} An optional array containing the timers to mock.
-  The currently supported timer values are `'setInterval'`, `'setTimeout'`,
-  and `'Date.now'`.
-  If no array is provided, all timers (`'setInterval'`, `'clearInterval'`,
-  `'setTimeout'`, `'clearTimeout'`, and `'Date.now'`) will be mocked by default.
-* `initialTime` {number} An optional number representing the initial time
-  (in milliseconds) to use as the value for `Date.now()`. **Default:** `Date.now()`.
+* `EnableOptions` {Object} Optional configuration options for enabling timer
+  mocking. The following properties are supported:
+  * `timersToEnable` {Array} An optional array containing the timers to mock.
+    The currently supported timer values are `'setInterval'`, `'setTimeout'`,
+    and `'Date'`. **Default:** `['setInterval', 'setTimeout', 'Date']`.
+    If no array is provided, all timers (`'setInterval'`, `'clearInterval'`,
+    `'setTimeout'`, `'clearTimeout'`, and `'Date'`) will be mocked by default.
+  * `now` {number | Date} An optional number or Date object representing the
+    initial time (in milliseconds) to use as the value
+    for `Date.now()`. **Default:** `0`.
 
 **Note:** When you enable mocking for a specific timer, its associated
 clear function will also be implicitly mocked.
 
-**Note:** Mocking `Date.now` will affect the behavior of the mocked timers
-as they use this value internally.
+**Note:** Mocking `Date` will affect the behavior of the mocked timers
+as they use the same internal clock.
 
 Example usage without setting initial time:
 
 ```mjs
 import { mock } from 'node:test';
-mock.timers.enable(['setInterval']);
+mock.timers.enable({ timersToEnable: ['setInterval'] });
 ```
 
 ```js
 const { mock } = require('node:test');
-mock.timers.enable(['setInterval']);
-```
-
-Example usage with initial time set
-
-```mjs
-import { mock } from 'node:test';
-mock.timers.enable(['Date.now'], 1000);
-```
-
-```js
-const { mock } = require('node:test');
-mock.timers.enable(['Date.now'], 1000);
+mock.timers.enable({ timersToEnable: ['setInterval'] });
 ```
 
 The above example enables mocking for the `setInterval` timer and
@@ -1787,12 +1780,36 @@ and `clearInterval` functions from [node:timers](./timers.md),
 [node:timers/promises](./timers.md#timers-promises-api), and
 `globalThis` will be mocked.
 
+Example usage with initial time set
+
+```mjs
+import { mock } from 'node:test';
+mock.timers.enable({ timersToEnable: ['Date'], now: 1000 });
+```
+
+```js
+const { mock } = require('node:test');
+mock.timers.enable({ timersToEnable: ['Date'], now: 1000 });
+```
+
+Example usage with initial Date object as time set
+
+```mjs
+import { mock } from 'node:test';
+mock.timers.enable({ timersToEnable: ['Date'], now: new Date() });
+```
+
+```js
+const { mock } = require('node:test');
+mock.timers.enable({ timersToEnable: ['Date'], now: new Date() });
+```
+
 Alternatively, if you call `mock.timers.enable()` without any parameters:
 
 All timers (`'setInterval'`, `'clearInterval'`, `'setTimeout'`, and `'clearTimeout'`)
 will be mocked. The `setInterval`, `clearInterval`, `setTimeout`, and `clearTimeout`
 functions from `node:timers`, `node:timers/promises`,
-and `globalThis` will be mocked.
+and `globalThis` will be mocked. As well as the `Date` object.
 
 ### `timers.reset()`
 
@@ -1849,7 +1866,7 @@ import { test } from 'node:test';
 test('mocks setTimeout to be executed synchronously without having to actually wait for it', (context) => {
   const fn = context.mock.fn();
 
-  context.mock.timers.enable(['setTimeout']);
+  context.mock.timers.enable({ timersToEnable: ['setTimeout'] });
 
   setTimeout(fn, 9999);
 
@@ -1868,7 +1885,7 @@ const { test } = require('node:test');
 
 test('mocks setTimeout to be executed synchronously without having to actually wait for it', (context) => {
   const fn = context.mock.fn();
-  context.mock.timers.enable(['setTimeout']);
+  context.mock.timers.enable({ timersToEnable: ['setTimeout'] });
 
   setTimeout(fn, 9999);
   assert.strictEqual(fn.mock.callCount(), 0);
@@ -1888,7 +1905,7 @@ import { test } from 'node:test';
 
 test('mocks setTimeout to be executed synchronously without having to actually wait for it', (context) => {
   const fn = context.mock.fn();
-  context.mock.timers.enable(['setTimeout']);
+  context.mock.timers.enable({ timersToEnable: ['setTimeout'] });
   const nineSecs = 9000;
   setTimeout(fn, nineSecs);
 
@@ -1907,7 +1924,7 @@ const { test } = require('node:test');
 
 test('mocks setTimeout to be executed synchronously without having to actually wait for it', (context) => {
   const fn = context.mock.fn();
-  context.mock.timers.enable(['setTimeout']);
+  context.mock.timers.enable({ timersToEnable: ['setTimeout'] });
   const nineSecs = 9000;
   setTimeout(fn, nineSecs);
 
@@ -1917,6 +1934,48 @@ test('mocks setTimeout to be executed synchronously without having to actually w
   context.mock.timers.tick(twoSeconds);
 
   assert.strictEqual(fn.mock.callCount(), 1);
+});
+```
+
+Advancing time using `.tick` will also advance the time for any `Date` object
+created after the mock was enabled (if `Date` was also set to be mocked).
+
+```mjs
+import assert from 'node:assert';
+import { test } from 'node:test';
+
+test('mocks setTimeout to be executed synchronously without having to actually wait for it', (context) => {
+  const fn = context.mock.fn();
+
+  context.mock.timers.enable({ timersToEnable: ['setTimeout', 'Date'] });
+  setTimeout(fn, 9999);
+
+  assert.strictEqual(fn.mock.callCount(), 0);
+  assert.strictEqual(Date.now(), 0);
+
+  // Advance in time
+  context.mock.timers.tick(9999);
+  assert.strictEqual(fn.mock.callCount(), 1);
+  assert.strictEqual(Date.now(), 9999);
+});
+```
+
+```js
+const assert = require('node:assert');
+const { test } = require('node:test');
+
+test('mocks setTimeout to be executed synchronously without having to actually wait for it', (context) => {
+  const fn = context.mock.fn();
+  context.mock.timers.enable({ timersToEnable: ['setTimeout', 'Date'] });
+
+  setTimeout(fn, 9999);
+  assert.strictEqual(fn.mock.callCount(), 0);
+  assert.strictEqual(Date.now(), 0);
+
+  // Advance in time
+  context.mock.timers.tick(9999);
+  assert.strictEqual(fn.mock.callCount(), 1);
+  assert.strictEqual(Date.now(), 9999);
 });
 ```
 
@@ -1933,7 +1992,7 @@ test('mocks setTimeout to be executed synchronously without having to actually w
   const fn = context.mock.fn();
 
   // Optionally choose what to mock
-  context.mock.timers.enable(['setTimeout']);
+  context.mock.timers.enable({ timersToEnable: ['setTimeout'] });
   const id = setTimeout(fn, 9999);
 
   // Implicity mocked as well
@@ -1953,7 +2012,7 @@ test('mocks setTimeout to be executed synchronously without having to actually w
   const fn = context.mock.fn();
 
   // Optionally choose what to mock
-  context.mock.timers.enable(['setTimeout']);
+  context.mock.timers.enable({ timersToEnable: ['setTimeout'] });
   const id = setTimeout(fn, 9999);
 
   // Implicity mocked as well
@@ -1987,7 +2046,7 @@ test('mocks setTimeout to be executed synchronously without having to actually w
   const nodeTimerPromiseSpy = context.mock.fn();
 
   // Optionally choose what to mock
-  context.mock.timers.enable(['setTimeout']);
+  context.mock.timers.enable({ timersToEnable: ['setTimeout'] });
   setTimeout(globalTimeoutObjectSpy, 9999);
   nodeTimers.setTimeout(nodeTimerSpy, 9999);
 
@@ -2014,7 +2073,7 @@ test('mocks setTimeout to be executed synchronously without having to actually w
   const nodeTimerPromiseSpy = context.mock.fn();
 
   // Optionally choose what to mock
-  context.mock.timers.enable(['setTimeout']);
+  context.mock.timers.enable({ timersToEnable: ['setTimeout'] });
   setTimeout(globalTimeoutObjectSpy, 9999);
   nodeTimers.setTimeout(nodeTimerSpy, 9999);
 
@@ -2037,7 +2096,7 @@ import assert from 'node:assert';
 import { test } from 'node:test';
 import nodeTimersPromises from 'node:timers/promises';
 test('should tick five times testing a real use case', async (context) => {
-  context.mock.timers.enable(['setInterval']);
+  context.mock.timers.enable({ timersToEnable: ['setInterval'] });
 
   const expectedIterations = 3;
   const interval = 1000;
@@ -2069,7 +2128,7 @@ const assert = require('node:assert');
 const { test } = require('node:test');
 const nodeTimersPromises = require('node:timers/promises');
 test('should tick five times testing a real use case', async (context) => {
-  context.mock.timers.enable(['setInterval']);
+  context.mock.timers.enable({ timersToEnable: ['setInterval'] });
 
   const expectedIterations = 3;
   const interval = 1000;
@@ -2103,7 +2162,8 @@ added:
   - REPLACEME
 -->
 
-Triggers all pending mocked timers immediately.
+Triggers all pending mocked timers immediately. If the `Date` object is also
+mocked, it will also advance the `Date` object to the furthest timer's time.
 
 The example below triggers all pending timers immediately,
 causing them to execute without any delay.
@@ -2113,7 +2173,7 @@ import assert from 'node:assert';
 import { test } from 'node:test';
 
 test('runAll functions following the given order', (context) => {
-  context.mock.timers.enable(['setTimeout']);
+  context.mock.timers.enable({ timersToEnable: ['setTimeout', 'Date'] });
   const results = [];
   setTimeout(() => results.push(1), 9999);
 
@@ -2125,8 +2185,9 @@ test('runAll functions following the given order', (context) => {
   assert.deepStrictEqual(results, []);
 
   context.mock.timers.runAll();
-
   assert.deepStrictEqual(results, [3, 2, 1]);
+  // The Date object is also advanced to the furthest timer's time
+  assert.strictEqual(Date.now(), 9999);
 });
 ```
 
@@ -2135,7 +2196,7 @@ const assert = require('node:assert');
 const { test } = require('node:test');
 
 test('runAll functions following the given order', (context) => {
-  context.mock.timers.enable(['setTimeout']);
+  context.mock.timers.enable({ timersToEnable: ['setTimeout', 'Date'] });
   const results = [];
   setTimeout(() => results.push(1), 9999);
 
@@ -2147,8 +2208,9 @@ test('runAll functions following the given order', (context) => {
   assert.deepStrictEqual(results, []);
 
   context.mock.timers.runAll();
-
   assert.deepStrictEqual(results, [3, 2, 1]);
+  // The Date object is also advanced to the furthest timer's time
+  assert.strictEqual(Date.now(), 9999);
 });
 ```
 
@@ -2164,7 +2226,8 @@ added:
   - REPLACEME
 -->
 
-Sets the current Unix timestamp that will be used as reference for `Date.now`.
+Sets the current Unix timestamp that will be used as reference for any mocked
+`Date` objects.
 
 ```mjs
 import assert from 'node:assert';
@@ -2176,7 +2239,7 @@ test('runAll functions following the given order', (context) => {
   // Date.now is not mocked
   assert.deepStrictEqual(Date.now(), now);
 
-  context.mock.timers.enable(['Date.now']);
+  context.mock.timers.enable({ timersToEnable: ['Date'] });
   context.mock.timers.setTime(setTime);
   // Date.now is now 1000
   assert.strictEqual(Date.now(), setTime);
@@ -2193,10 +2256,62 @@ test('setTime replaces current time', (context) => {
   // Date.now is not mocked
   assert.deepStrictEqual(Date.now(), now);
 
-  context.mock.timers.enable(['Date.now']);
+  context.mock.timers.enable({ timersToEnable: ['Date'] });
   context.mock.timers.setTime(setTime);
   // Date.now is now 1000
   assert.strictEqual(Date.now(), setTime);
+});
+```
+
+#### Dates and Timers working together
+
+Dates and timer objects are dependent on each other. If you use `setTime()` to
+pass the current time to the mocked `Date` object, the timers that would be
+triggered at that time will also be executed immediately in order.
+
+```mjs
+import assert from 'node:assert';
+import { test } from 'node:test';
+
+test('runAll functions following the given order', (context) => {
+  context.mock.timers.enable({ timersToEnable: ['setTimeout', 'Date'] });
+  const results = [];
+  setTimeout(() => results.push(1), 9999);
+
+  // Notice that if both timers have the same timeout,
+  // the order of execution is guaranteed
+  setTimeout(() => results.push(3), 8888);
+  setTimeout(() => results.push(2), 8888);
+
+  assert.deepStrictEqual(results, []);
+
+  context.mock.timers.setTime(12000);
+  assert.deepStrictEqual(results, [3, 2, 1]);
+  // The Date object is also advanced to the furthest timer's time
+  assert.strictEqual(Date.now(), 12000);
+});
+```
+
+```js
+const assert = require('node:assert');
+const { test } = require('node:test');
+
+test('runAll functions following the given order', (context) => {
+  context.mock.timers.enable({ timersToEnable: ['setTimeout', 'Date'] });
+  const results = [];
+  setTimeout(() => results.push(1), 9999);
+
+  // Notice that if both timers have the same timeout,
+  // the order of execution is guaranteed
+  setTimeout(() => results.push(3), 8888);
+  setTimeout(() => results.push(2), 8888);
+
+  assert.deepStrictEqual(results, []);
+
+  context.mock.timers.setTime(12000);
+  assert.deepStrictEqual(results, [3, 2, 1]);
+  // The Date object is also advanced to the furthest timer's time
+  assert.strictEqual(Date.now(), 12000);
 });
 ```
 
