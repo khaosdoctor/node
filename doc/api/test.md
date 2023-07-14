@@ -1750,7 +1750,7 @@ Enables timer mocking for the specified timers.
   * `timersToEnable` {Array} An optional array containing the timers to mock.
     The currently supported timer values are `'setInterval'`, `'setTimeout'`,
     and `'Date'`. **Default:** `['setInterval', 'setTimeout', 'Date']`.
-    If no array is provided, all timers (`'setInterval'`, `'clearInterval'`,
+    If no array is provided, all time related APIs (`'setInterval'`, `'clearInterval'`,
     `'setTimeout'`, `'clearTimeout'`, and `'Date'`) will be mocked by default.
   * `now` {number | Date} An optional number or Date object representing the
     initial time (in milliseconds) to use as the value
